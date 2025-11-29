@@ -4,7 +4,7 @@ A dynamic test framework for testing any Swagger/OpenAPI specification by automa
 
 ## Author
 
-**Arun Kumar Pal**
+**Arun Pal**
 - GitHub: [@ArunKumarPal](https://github.com/ArunKumarPal)
 - Repository: [openapi-client-test](https://github.com/ArunKumarPal/openapi-client-test)
 
@@ -911,7 +911,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 For questions, issues, or suggestions:
 - Open an issue on [GitHub Issues](https://github.com/ArunKumarPal/openapi-client-test/issues)
-- Contact: Arun Kumar Pal
+- Contact: Arun Pal
 
 ---
 
