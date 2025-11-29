@@ -592,29 +592,50 @@ public void testPostPet() throws Exception {
 
 | Property | Description | Default | Example |
 |----------|-------------|---------|---------|
-| `serviceName` | Service name pattern for test execution | `*` (all tests) | `PetStore`, `UserService` |
+| `serviceName` | Service name pattern for test execution (runs **multiple** test classes matching pattern) | `*` (all tests) | `PetStore`, `User`, `Order` |
 | `baseUrl` | API base URL | Swagger spec base path | `https://api.example.com` |
 | `authApiKey` | API key for authentication | `defaultApiKeyValue` | `your-api-key` |
 | `authApiSecret` | API secret for authentication | `defaultApiSecretValue` | `your-api-secret` |
 
+**Note:** The `serviceName` parameter uses wildcard matching (`**/${serviceName}*Test.java`), which means it will execute **all test classes** whose names start with the specified service name. This is useful for running multiple related test classes in one command.
+
 ### Running Tests with Parameters
 
 ```bash
-# Run specific service tests
+# Run ALL test classes starting with "PetStore"
+# Example: SwaggerPetStoreTest.java, SwaggerPetStoreAuthTest.java, etc.
 mvn test -DserviceName=PetStore
 
-# Run with custom base URL
+# Run ALL test classes starting with "UserService"
 mvn test -DserviceName=UserService -DbaseUrl=https://api.example.com
 
-# Run with authentication
-mvn test -DserviceName=OrderService \
+# Run ALL test classes starting with "Order" with authentication
+mvn test -DserviceName=Order \
   -DbaseUrl=https://api.example.com \
   -DauthApiKey=your-key \
   -DauthApiSecret=your-secret
 
-# Run all tests (default)
+# Run all tests in the project (default)
 mvn test
 ```
+
+**Organizing Multiple Test Classes:**
+
+You can create multiple test classes for the same service and run them all together:
+
+```
+src/test/java/com/arun/swagger/
+├── userservice/
+│   ├── SwaggerUserServiceTest.java           ← Runs with -DserviceName=UserService
+│   ├── SwaggerUserServiceAuthTest.java       ← Runs with -DserviceName=UserService
+│   └── SwaggerUserServiceValidationTest.java ← Runs with -DserviceName=UserService
+└── orderservice/
+    ├── SwaggerOrderServiceTest.java          ← Runs with -DserviceName=OrderService
+    ├── SwaggerOrderServiceProcessingTest.java ← Runs with -DserviceName=OrderService
+    └── SwaggerOrderServiceReportsTest.java    ← Runs with -DserviceName=OrderService
+```
+
+Command `mvn test -DserviceName=UserService` will execute all three UserService test classes.
 
 ### Maven Configuration
 
@@ -793,11 +814,17 @@ test:
 
 ### Running Specific Service Tests
 
-The framework supports running specific service tests using the `serviceName` parameter:
+The framework supports running specific service tests using the `serviceName` parameter. This parameter uses pattern matching to run **all test classes** that start with the service name.
 
 ```bash
-# Run all tests for a specific service
+# Run all tests for a specific service (runs ALL test classes matching the pattern)
 mvn test -DserviceName=PetStore
+
+# This will execute ALL test classes like:
+# - SwaggerPetStoreTest.java
+# - SwaggerPetStoreAuthTest.java
+# - SwaggerPetStoreIntegrationTest.java
+# Any class matching: **/${serviceName}*Test.java
 
 # Run specific service tests with custom configuration
 mvn test -DserviceName=UserService \
@@ -806,7 +833,30 @@ mvn test -DserviceName=UserService \
   -DauthApiSecret=your-secret
 ```
 
-The Maven Surefire plugin is configured to run tests matching the pattern: `**/${serviceName}*Test.java`
+**How It Works:**
+- The Maven Surefire plugin is configured to run tests matching: `**/${serviceName}*Test.java`
+- If `serviceName=UserService`, it will run ALL classes like:
+  - `SwaggerUserServiceTest.java`
+  - `SwaggerUserServiceAuthTest.java`
+  - `SwaggerUserServiceValidationTest.java`
+  - Any class name starting with the serviceName and ending with `Test.java`
+- This allows you to organize multiple test classes per service and run them all together
+
+**Examples:**
+
+```bash
+# Run all User service tests (multiple test classes)
+mvn test -DserviceName=User
+# Runs: SwaggerUserTest.java, SwaggerUserAuthTest.java, SwaggerUserManagementTest.java, etc.
+
+# Run all Order service tests
+mvn test -DserviceName=Order
+# Runs: SwaggerOrderTest.java, SwaggerOrderProcessingTest.java, SwaggerOrderValidationTest.java, etc.
+
+# Run all Pet service tests
+mvn test -DserviceName=Pet
+# Runs: SwaggerPetTest.java, SwaggerPetStoreTest.java, SwaggerPetApiTest.java, etc.
+```
 
 ### Integrating into Your Code Repository
 
@@ -862,6 +912,8 @@ git push origin main
 
 ### Running Multiple Services
 
+Each `serviceName` can execute **multiple test classes** matching that service pattern. You can also run tests for multiple services sequentially:
+
 ```bash
 # Script to run tests for multiple services
 #!/bin/bash
@@ -870,12 +922,31 @@ services=("PetStore" "UserService" "OrderService")
 
 for service in "${services[@]}"
 do
-    echo "Running tests for $service..."
+    echo "Running ALL test classes for $service..."
     mvn test -DserviceName=$service \
       -DbaseUrl=$BASE_URL \
       -DauthApiKey=$API_KEY \
       -DauthApiSecret=$API_SECRET
 done
+```
+
+**What Happens:**
+- `serviceName=PetStore` → Runs ALL test classes like `SwaggerPetStoreTest`, `SwaggerPetStoreAuthTest`, etc.
+- `serviceName=UserService` → Runs ALL test classes like `SwaggerUserServiceTest`, `SwaggerUserServiceAuthTest`, etc.
+- `serviceName=OrderService` → Runs ALL test classes like `SwaggerOrderServiceTest`, `SwaggerOrderServiceProcessingTest`, etc.
+
+**PowerShell Version (Windows):**
+```powershell
+# Script to run tests for multiple services
+$services = @("PetStore", "UserService", "OrderService")
+
+foreach ($service in $services) {
+    Write-Host "Running ALL test classes for $service..."
+    mvn test "-DserviceName=$service" `
+      "-DbaseUrl=$env:BASE_URL" `
+      "-DauthApiKey=$env:API_KEY" `
+      "-DauthApiSecret=$env:API_SECRET"
+}
 ```
 
 ---
